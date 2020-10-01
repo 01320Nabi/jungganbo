@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>정간보</title>
+    </head>
+    <body>
+        <div class="input">
+            <label for="meas-cnt">강 총 개수</label>
+            <input type="number" id="meas" name="meas-cnt" min="1" step="1" value="6">
+            <label for="beat-cnt">강 안의 정 개수</label>
+            <input type="number" id="beat" name="beat-cnt" min="2" max="6" step="1" value="3">
+            <label for="bpl-cnt">한 각 안의 강 개수</label>
+            <input type="number" id="bpl" name="bpl-cnt" min="1"step="1" value="2">
+            <input type="button" onclick="setSetting();draw();" value="설정 변경">
+        </div>
+        <div style="float: left;">
+            <canvas id="sheet"></canvas>
+        </div>
+        <p style="display: inline-block; margin: 10px; padding: 10px; border: 1px solid black;">
+            키보드 "~"부터 "-"까지는 각각 黃, 大, 太, 夾, 姑, 仲, 㽔, 林, 夷, 南, 無, 應의 12음률을 나타낸다.<br>
+            "="은 쉼표 △를 나타낸다.<br>
+            "&gt;"은 삼수변, "&lt;"은 인변을 추가한다.<br>
+            "/"은 늘임표 一를 추가한다.
+        </p>
+    </body>
+    <script>
+        var cvs = document.getElementById('sheet');
+        var sheet, mc, bc, bpl;
+        function setSetting() {
+            var t=-1;
+            mc = document.getElementById('meas').value;
+            bc = document.getElementById('beat').value;
+            bpl = document.getElementById('bpl').value;
+            sheet = new Array(mc);
+            for(var i=0; i<mc; i++) {
+                sheet[i] = new Array(bc);
+                for(var j=0; j<bc; j++) {
+                    sheet[i][j] = '';
+                }
+            }
+        }
+        window.onload = function() {
+            setSetting();
+            draw();
+        }
+        var blockSize = 100;
+        var font = 'KaiTi';
+        var selection = null;
+        function draw() {
+            cvs.width = Math.floor(mc/bpl)*blockSize+20;
+            cvs.height = bc*bpl*blockSize+20;
+            var ctx = cvs.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, cvs.width, cvs.height);
+            if(selection) {
+                ctx.fillStyle = 'grey';
+                ctx.fillRect(10+(Math.floor(mc/bpl)-selection.x-1)*blockSize, 10+selection.y*blockSize, blockSize, blockSize);
+            }
+            ctx.strokeStyle = ctx.fillStyle = 'black';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.rect(10, 10, cvs.width-20, cvs.height-20);
+            for(var i=1; i<Math.floor(mc/bpl); i++) {
+                ctx.moveTo(10+i*blockSize, 10);
+                ctx.lineTo(10+i*blockSize, cvs.height-10);
+            }
+            for(var i=1; i<bpl; i++) {
+                ctx.moveTo(10, 10+blockSize*bc*i);
+                ctx.lineTo(cvs.width-10, 10+blockSize*bc*i);
+            }
+            ctx.stroke();
+            ctx.closePath();
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(var i=0; i<bpl; i++) {
+                for(var j=1; j<bc; j++) {
+                    ctx.moveTo(10, 10+blockSize*j+blockSize*bc*i);
+                    ctx.lineTo(cvs.width-10, 10+blockSize*j+blockSize*bc*i);
+                }
+            }
+            ctx.stroke();
+            ctx.closePath();
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+            for(var i=0; i<Math.floor(mc/bpl); i++) {
+                for(var j=0; j<bc; j++) {
+                    for(var k=0; k<bpl; k++) {
+                        switch(sheet[i*bpl+k][j].length) {
+                            case 0:
+                            break;
+                            case 1:
+                            ctx.font = `${blockSize/2}px ${font}`;
+                            ctx.fillText(sheet[i*bpl+k][j], cvs.width-10-blockSize*i-blockSize/2, 10+blockSize*(bc*k+j)+blockSize/2);
+                            break;
+                            case 2:
+                            ctx.font = `${blockSize/2}px ${font}`;
+                            ctx.fillText(sheet[i*bpl+k][j][0], cvs.width-10-blockSize*i-blockSize/2, 10+blockSize*(bc*k+j)+blockSize/4);
+                            ctx.fillText(sheet[i*bpl+k][j][1], cvs.width-10-blockSize*i-blockSize/2, 10+blockSize*(bc*k+j)+blockSize/4*3);
+                            break;
+                            case 3:
+                            ctx.font = `${blockSize/3}px ${font}`;
+                            ctx.fillText(sheet[i*bpl+k][j][0], cvs.width-10-blockSize*i-blockSize/2, 10+blockSize*(bc*k+j)+blockSize/6);
+                            ctx.fillText(sheet[i*bpl+k][j][1], cvs.width-10-blockSize*i-blockSize/2, 10+blockSize*(bc*k+j)+blockSize/6*3);
+                            ctx.fillText(sheet[i*bpl+k][j][2], cvs.width-10-blockSize*i-blockSize/2, 10+blockSize*(bc*k+j)+blockSize/6*5);
+                            break;
+                            case 4:
+                            ctx.font = `${blockSize/2}px ${font}`;
+                            ctx.fillText(sheet[i*bpl+k][j][0], cvs.width-10-blockSize*i-blockSize/4*3, 10+blockSize*(bc*k+j)+blockSize/4);
+                            ctx.fillText(sheet[i*bpl+k][j][1], cvs.width-10-blockSize*i-blockSize/4, 10+blockSize*(bc*k+j)+blockSize/4);
+                            ctx.fillText(sheet[i*bpl+k][j][2], cvs.width-10-blockSize*i-blockSize/4*3, 10+blockSize*(bc*k+j)+blockSize/4*3);
+                            ctx.fillText(sheet[i*bpl+k][j][3], cvs.width-10-blockSize*i-blockSize/4, 10+blockSize*(bc*k+j)+blockSize/4*3);
+                            break;
+                            case 6:
+                            ctx.font = `${blockSize/3}px ${font}`;
+                            ctx.fillText(sheet[i*bpl+k][j][0], cvs.width-10-blockSize*i-blockSize/4, 10+blockSize*(bc*k+j)+blockSize/6);
+                            ctx.fillText(sheet[i*bpl+k][j][1], cvs.width-10-blockSize*i-blockSize/4*3, 10+blockSize*(bc*k+j)+blockSize/6);
+                            ctx.fillText(sheet[i*bpl+k][j][2], cvs.width-10-blockSize*i-blockSize/4, 10+blockSize*(bc*k+j)+blockSize/6*3);
+                            ctx.fillText(sheet[i*bpl+k][j][3], cvs.width-10-blockSize*i-blockSize/4*3, 10+blockSize*(bc*k+j)+blockSize/6*3);
+                            ctx.fillText(sheet[i*bpl+k][j][2], cvs.width-10-blockSize*i-blockSize/4, 10+blockSize*(bc*k+j)+blockSize/6*5);
+                            ctx.fillText(sheet[i*bpl+k][j][3], cvs.width-10-blockSize*i-blockSize/4*3, 10+blockSize*(bc*k+j)+blockSize/6*5);
+                            break;
+                            default:
+                            ctx.font = `${blockSize/2}px ${font}`;
+                            ctx.fillText(sheet[i*bpl+k][j].length, cvs.width-10-blockSize*i-blockSize/2, 10+blockSize*(bc*k+j)+blockSize/2);
+                        }
+                    }
+                }
+            }
+        }
+        cvs.onclick = function(e) {
+            var rawX = e.offsetX;
+            var rawY = e.offsetY;
+            if(rawX<10||rawX>cvs.width-10||rawY<10||rawY>cvs.height-10) {
+                return;
+            }
+            var x = Math.floor((cvs.width-10-rawX)/blockSize);
+            var y = Math.floor((rawY-10)/blockSize);
+            var p = x*bc*bpl+y;
+            var ip = Math.floor(p/bc);
+            var jp = p%bc;
+            if(selection&&selection.x==x&&selection.y==y) {
+                selection = null;
+            }
+            else {
+                selection = {
+                    x: x,
+                    y: y,
+                    i: ip,
+                    j: jp
+                };
+            }
+            draw();
+        }
+        const notes = {
+            192: '黃',
+            49: '大',
+            50: '太',
+            51: '夾',
+            52: '姑',
+            53: '仲',
+            54: '㽔',
+            55: '林',
+            56: '夷',
+            57: '南',
+            48: '無',
+            189: '應',
+            187: '△',
+            32: ' ',
+            191: '一'
+        }
+        const up = {
+            '㣴': '僙',
+            '僙': '黃',
+            '黃': '潢',
+            '潢': '㶂',
+            '㶂': '㶂',
+            '㣕': '㐲',
+            '㐲': '大',
+            '大': '汏',
+            '汏': '𣴘',
+            '𣴘': '𣴘',
+            '㣖': '㑀',
+            '㑀': '太',
+            '太': '汰',
+            '汰': '㳲',
+            '㳲': '㳲',
+            '㣣': '俠',
+            '俠': '夾',
+            '夾': '浹',
+            '浹': '㴺',
+            '㴺': '㴺',
+            '㣨': '㑬',
+            '㑬': '姑',
+            '姑': '㴌',
+            '㴌': '㵈',
+            '㵈': '㵈',
+            '㣡': '㑖',
+            '㑖': '仲',
+            '仲': '㳞',
+            '㳞': '㴢',
+            '㴢': '㴢',
+            '㣸': '𠐭',
+            '𠐭': '㽔',
+            '㽔': '㶋',
+            '㶋': '㶙',
+            '㶙': '㶙',
+            '㣩': '㑣',
+            '㑣': '林',
+            '林': '淋',
+            '淋': '㵉',
+            '㵉': '㵉',
+            '𢓡': '侇',
+            '侇': '夷',
+            '夷': '洟',
+            '洟': '㴣',
+            '㴣': '㴣',
+            '㣮': '㑲',
+            '㑲': '南',
+            '南': '湳',
+            '湳': '㵜',
+            '㵜': '㵜',
+            '㣳': '㒇',
+            '㒇': '無',
+            '無': '潕',
+            '潕': '㶃',
+            '㶃': '㶃',
+            '㣹': '㒣',
+            '㒣': '應',
+            '應': '㶐',
+            '㶐': '㶝',
+            '㶝': '㶝',
+            '△': '△',
+            ' ': ' ',
+            '一': '一'
+        };
+        const down = {
+            '㣴': '㣴',
+            '僙': '㣴',
+            '黃': '僙',
+            '潢': '黃',
+            '㶂': '潢',
+            '㣕': '㣕',
+            '㐲': '㣕',
+            '大': '㐲',
+            '汏': '大',
+            '𣴘': '汏',
+            '㣖': '㣖',
+            '㑀': '㣖',
+            '太': '㑀',
+            '汰': '太',
+            '㳲': '汰',
+            '㣣': '㣣',
+            '俠': '㣣',
+            '夾': '俠',
+            '浹': '夾',
+            '㴺': '浹',
+            '㣨': '㣨',
+            '㑬': '㣨',
+            '姑': '㑬',
+            '㴌': '姑',
+            '㵈': '㴌',
+            '㣡': '㣡',
+            '㑖': '㣡',
+            '仲': '㑖',
+            '㳞': '仲',
+            '㴢': '㳞',
+            '㣸': '㣸',
+            '𠐭': '㣸',
+            '㽔': '𠐭',
+            '㶋': '㽔',
+            '㶙': '㶋',
+            '㣩': '㣩',
+            '㑣': '㣩',
+            '林': '㑣',
+            '淋': '林',
+            '㵉': '淋',
+            '𢓡': '𢓡',
+            '侇': '𢓡',
+            '夷': '侇',
+            '洟': '夷',
+            '㴣': '洟',
+            '㣮': '㣮',
+            '㑲': '㣮',
+            '南': '㑲',
+            '湳': '南',
+            '㵜': '湳',
+            '㣳': '㣳',
+            '㒇': '㣳',
+            '無': '㒇',
+            '潕': '無',
+            '㶃': '潕',
+            '㣹': '㣹',
+            '㒣': '㣹',
+            '應': '㒣',
+            '㶐': '應',
+            '㶝': '㶐',
+            '△': '△',
+            ' ': ' ',
+            '一': '一'
+        };
+        window.onkeydown = function(e) {
+            if(!selection) {
+                return;
+            }
+            switch(e.keyCode) {
+                case 192:
+                case 49:
+                case 50:
+                case 51:
+                case 52:
+                case 53:
+                case 54:
+                case 55:
+                case 56:
+                case 57:
+                case 48:
+                case 189:
+                case 187:
+                case 32:
+                case 191:
+                sheet[selection.i][selection.j] = sheet[selection.i][selection.j].concat(notes[e.keyCode]);
+                break;
+                case 8:
+                sheet[selection.i][selection.j] = sheet[selection.i][selection.j].substring(0, Math.max(0, sheet[selection.i][selection.j].length-1));
+                break;
+                case 190:
+                if(sheet[selection.i][selection.j].length>0) {
+                    sheet[selection.i][selection.j] = sheet[selection.i][selection.j].substring(0, sheet[selection.i][selection.j].length-1).concat(up[sheet[selection.i][selection.j][sheet[selection.i][selection.j].length-1]]);
+                }
+                break;
+                case 188:
+                if(sheet[selection.i][selection.j].length>0) {
+                    sheet[selection.i][selection.j] = sheet[selection.i][selection.j].substring(0, sheet[selection.i][selection.j].length-1).concat(down[sheet[selection.i][selection.j][sheet[selection.i][selection.j].length-1]]);
+                }
+                break;
+            }
+            draw();
+        }
+    </script>
+</html>
