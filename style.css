@@ -6,6 +6,7 @@ canvas, .desc {
 }
 .desc, .popup-p {
     border: 1px solid black;
+    user-select: none;
 }
 .popup-p {
 	width: 300px;
