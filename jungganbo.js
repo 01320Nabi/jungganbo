@@ -140,8 +140,12 @@ function draw() {
     for(var i=0; i<lc; i++) {
         for(var j=0; j<mc; j++) {
             for(var k=0; k<bc; k++) {
-                ctx.font = `${block/Math.max(2, sheet[i][j][k].length)}px ${font}`;
+				let fntSz = Math.max(2, sheet[i][j][k].length);
+				for(var l=0; l<sheet[i][j][k].length; l++) {
+					fntSz = Math.max(fntSz, sheet[i][j][k][l].length);
+				}
                 for(var l=0; l<sheet[i][j][k].length; l++) {
+					ctx.font = `${block/Math.max(2, Math.max(sheet[i][j][k].length, sheet[i][j][k][l].length))}px ${font}`;
                     for(var m=0; m<sheet[i][j][k][l].length; m++) {
                         if(notes[sheet[i][j][k][l][m]]) {
                             ctx.fillText(notes[sheet[i][j][k][l][m]], w-margin-(block+space)*i-block+block/2/sheet[i][j][k][l].length*(m*2+1), margin+block*(j*bc+k)+block/2/sheet[i][j][k].length*(l*2+1));
