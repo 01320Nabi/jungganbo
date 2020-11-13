@@ -9,21 +9,38 @@ function setSetting() {
     block = Number(document.getElementById('block').value);
     space = Number(document.getElementById('space').value);
     fin = block/10;
-    sheet = new Array(lc);
+    if(!sheet||sheet.length!=lc) {
+        sheet = new Array(lc);
+    }
     for(var i=0; i<lc; i++) {
-        sheet[i] = new Array(mc);
+        if(!sheet[i]||sheet[i].length!=mc) {
+            sheet[i] = new Array(mc);
+        }
         for(var j=0; j<mc; j++) {
-            sheet[i][j] = new Array(bc);
-            for(var k=0; k<bc; k++) {
-                sheet[i][j][k] = [[]];
+            if(!sheet[i][j]||sheet[i][j].length!=bc) {
+                sheet[i][j] = new Array(bc);
+                for(var k=0; k<bc; k++) {
+                    sheet[i][j][k] = [[]];
+                }
             }
         }
     }
     selection = null;
     draw();
 }
-window.onload = function() {
-    setSetting();
+window.onload = setSetting;
+function setData() {
+    try {
+        const _sheet = JSON.parse(document.getElementById('data').value);
+        document.getElementById('line').value = _sheet.length;
+        document.getElementById('meas').value = _sheet[0].length;
+        document.getElementById('beat').value = _sheet[0][0].length;
+        sheet = _sheet;
+        setSetting();
+        draw();
+    } catch(err) {
+        alert(err);
+    }
 }
 var w, h;
 var selection = null;
@@ -89,8 +106,10 @@ const notes = {
     'l': '應',
     'l:': '㶐',
     'l::': '㶝',
-    '.': '△',
+    '.': 'ㅿ',
     ' ': '一',
+    '+': '丨',
+    '-': 'ㆍ',
     '': false
 }
 function draw() {
@@ -179,6 +198,7 @@ cvs.onclick = function(e) {
         selection = {x: x, y: y, z: z};
         cell.value = JSON.stringify(sheet[selection.x][selection.y][selection.z]);
         cell.parentElement.hidden = false;
+        cell.focus();
     }
     draw();
 }
