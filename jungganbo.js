@@ -44,7 +44,7 @@ function setData() {
 }
 var w, h;
 var selection = null;
-var font = "KaiTi";
+var font = "serif";
 const notes = {
     'a;;': '㣴',
     'a;': '僙',
@@ -110,7 +110,7 @@ const notes = {
     ' ': '一',
     '+': '丨',
     '-': 'ㆍ',
-    '': false
+    '': false,
 }
 function draw() {
     w = cvs.width = margin * 2 + (block + space) * lc;

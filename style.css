@@ -2,7 +2,7 @@ canvas, .desc {
     float: left;
 }
 .desc, .popup-input {
-    font-family: 'Courier New', Courier, monospace;
+    font-family: monospace;
 }
 .desc, .popup-p {
     border: 1px solid black;
