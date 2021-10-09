@@ -1,25 +1,24 @@
-var cvs = document.getElementById('sheet');
-var cell = document.getElementById('cell');
-var sheet, mc, bc, bpl, block, margin = 10, space, fin;
+const cvs = document.getElementById('sheet');
+const cell = document.getElementById('cell');
+let sheet, mc, bc, bpl, block, margin = 10, space, fin;
 function setSetting() {
-    var t=-1;
     lc = Number(document.getElementById('line').value);
     mc = Number(document.getElementById('meas').value);
     bc = Number(document.getElementById('beat').value);
     block = Number(document.getElementById('block').value);
     space = Number(document.getElementById('space').value);
-    fin = block/10;
-    if(!sheet||sheet.length!=lc) {
+    fin = block / 10;
+    if (!sheet || sheet.length != lc) {
         sheet = new Array(lc);
     }
-    for(var i=0; i<lc; i++) {
-        if(!sheet[i]||sheet[i].length!=mc) {
+    for (let i = 0; i < lc; i++) {
+        if (!sheet[i] || sheet[i].length != mc) {
             sheet[i] = new Array(mc);
         }
-        for(var j=0; j<mc; j++) {
-            if(!sheet[i][j]||sheet[i][j].length!=bc) {
+        for (let j = 0; j < mc; j++) {
+            if (!sheet[i][j] || sheet[i][j].length != bc) {
                 sheet[i][j] = new Array(bc);
-                for(var k=0; k<bc; k++) {
+                for (let k = 0; k < bc; k++) {
                     sheet[i][j][k] = [[]];
                 }
             }
@@ -29,22 +28,35 @@ function setSetting() {
     draw();
 }
 window.onload = setSetting;
-function setData() {
+function setData(value) {
     try {
-        const _sheet = JSON.parse(document.getElementById('data').value);
+        const _sheet = value;
         document.getElementById('line').value = _sheet.length;
         document.getElementById('meas').value = _sheet[0].length;
         document.getElementById('beat').value = _sheet[0][0].length;
         sheet = _sheet;
         setSetting();
         draw();
-    } catch(err) {
+    } catch (err) {
         alert(err);
     }
 }
-var w, h;
-var selection = null;
-var font = "serif";
+function download() {
+    const filename = prompt("파일 이름? (확장자 제외, 기본값: sheet)", "sheet");
+    if(filename) {
+        const blob = new Blob([JSON.stringify(sheet)], {type: 'text/json'});
+        const anchor = document.createElement('a');
+        anchor.download = filename + ".json";
+        anchor.href = URL.createObjectURL(blob);
+        anchor.click();
+    }
+}
+function upload() {
+    fetch(URL.createObjectURL(document.getElementById('sheet-input').files[0])).then(response => response.json()).then(value => setData(value));
+}
+let w, h;
+let selection = null;
+let font = "serif";
 const notes = {
     'a;;': '㣴',
     'a;': '僙',
@@ -108,47 +120,45 @@ const notes = {
     'l::': '㶝',
     '.': 'ㅿ',
     ' ': '一',
-    '+': '丨',
-    '-': 'ㆍ',
     '': false,
 }
 function draw() {
     w = cvs.width = margin * 2 + (block + space) * lc;
     h = cvs.height = margin * 2 + block * mc * bc + fin;
-    var ctx = cvs.getContext('2d');
+    let ctx = cvs.getContext('2d');
     ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = 'grey';
-    if(selection) {
-        ctx.fillRect(w-(selection.x+1)*(block+space)-margin, (selection.y*bc+selection.z)*block + margin, block, block);
+    if (selection) {
+        ctx.fillRect(w - (selection.x + 1) * (block + space) - margin, (selection.y * bc + selection.z) * block + margin, block, block);
     }
     ctx.lineWidth = 3;
     ctx.fillStyle = ctx.strokeStyle = 'black';
-    ctx.strokeRect(margin, margin, w-margin*2, h-margin*2);
+    ctx.strokeRect(margin, margin, w - margin * 2, h - margin * 2);
     ctx.beginPath();
-    for(var i=0; i<lc; i++) {
-        ctx.moveTo(margin+(i+1)*(block+space), margin);
-        ctx.lineTo(margin+(i+1)*(block+space), h-margin);
-        ctx.moveTo(margin+(i+1)*(block+space)-space, margin);
-        ctx.lineTo(margin+(i+1)*(block+space)-space, h-margin);
+    for (let i = 0; i < lc; i++) {
+        ctx.moveTo(margin + (i + 1) * (block + space), margin);
+        ctx.lineTo(margin + (i + 1) * (block + space), h - margin);
+        ctx.moveTo(margin + (i + 1) * (block + space) - space, margin);
+        ctx.lineTo(margin + (i + 1) * (block + space) - space, h - margin);
     }
-    for(var i=0; i<lc; i++) {
-        for(var j=1; j<mc; j++) {
-            ctx.moveTo(margin+(block+space)*i, margin+j*bc*block);
-            ctx.lineTo(margin+(block+space)*i+block, margin+j*bc*block);
+    for (let i = 0; i < lc; i++) {
+        for (let j = 1; j < mc; j++) {
+            ctx.moveTo(margin + (block + space) * i, margin + j * bc * block);
+            ctx.lineTo(margin + (block + space) * i + block, margin + j * bc * block);
         }
     }
-    ctx.moveTo(margin, h-margin-fin);
-    ctx.lineTo(margin+block, h-margin-fin);
+    ctx.moveTo(margin, h - margin - fin);
+    ctx.lineTo(margin + block, h - margin - fin);
     ctx.stroke();
     ctx.closePath();
     ctx.lineWidth = 1;
     ctx.beginPath();
-    for(var i=0; i<lc; i++) {
-        for(var j=0; j<mc; j++) {
-            for(var k=1; k<bc; k++) {
-                ctx.moveTo(margin + (block + space)*i, margin+(bc*j+k)*block);
-                ctx.lineTo(margin + (block + space)*i + block, margin+(bc*j+k)*block);
+    for (let i = 0; i < lc; i++) {
+        for (let j = 0; j < mc; j++) {
+            for (let k = 1; k < bc; k++) {
+                ctx.moveTo(margin + (block + space) * i, margin + (bc * j + k) * block);
+                ctx.lineTo(margin + (block + space) * i + block, margin + (bc * j + k) * block);
             }
         }
     }
@@ -156,18 +166,18 @@ function draw() {
     ctx.closePath();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    for(var i=0; i<lc; i++) {
-        for(var j=0; j<mc; j++) {
-            for(var k=0; k<bc; k++) {
-				let fntSz = Math.max(2, sheet[i][j][k].length);
-				for(var l=0; l<sheet[i][j][k].length; l++) {
-					fntSz = Math.max(fntSz, sheet[i][j][k][l].length);
-				}
-                for(var l=0; l<sheet[i][j][k].length; l++) {
-					ctx.font = `${block/Math.max(2, Math.max(sheet[i][j][k].length, sheet[i][j][k][l].length))}px ${font}`;
-                    for(var m=0; m<sheet[i][j][k][l].length; m++) {
-                        if(notes[sheet[i][j][k][l][m]]) {
-                            ctx.fillText(notes[sheet[i][j][k][l][m]], w-margin-(block+space)*(i+1)+block/2/sheet[i][j][k][l].length*(m*2+1), margin+block*(j*bc+k)+block/2/sheet[i][j][k].length*(l*2+1));
+    for (let i = 0; i < lc; i++) {
+        for (let j = 0; j < mc; j++) {
+            for (let k = 0; k < bc; k++) {
+                let fntSz = Math.max(2, sheet[i][j][k].length);
+                for (let l = 0; l < sheet[i][j][k].length; l++) {
+                    fntSz = Math.max(fntSz, sheet[i][j][k][l].length);
+                }
+                for (let l = 0; l < sheet[i][j][k].length; l++) {
+                    ctx.font = `${block / Math.max(2, Math.max(sheet[i][j][k].length, sheet[i][j][k][l].length))}px ${font}`;
+                    for (let m = 0; m < sheet[i][j][k][l].length; m++) {
+                        if (notes[sheet[i][j][k][l][m]]) {
+                            ctx.fillText(notes[sheet[i][j][k][l][m]], w - margin - (block + space) * (i + 1) + block / 2 / sheet[i][j][k][l].length * (m * 2 + 1), margin + block * (j * bc + k) + block / 2 / sheet[i][j][k].length * (l * 2 + 1));
                         }
                     }
                 }
@@ -175,41 +185,353 @@ function draw() {
         }
     }
 }
-cvs.onclick = function(e) {
-    var rawX = e.offsetX;
-    var rawY = e.offsetY;
-    if(rawX<margin||rawX>w-margin||rawY<margin||rawY>h-margin) {
+cvs.onclick = function (e) {
+    let rawX = e.offsetX;
+    let rawY = e.offsetY;
+    if (rawX < margin || rawX > w - margin || rawY < margin || rawY > h - margin) {
         return;
     }
-    var x = Math.floor((w-rawX-margin)/(block+space));
-    if(x*(block+space)+space>w-rawX-margin) {
+    let x = Math.floor((w - rawX - margin) / (block + space));
+    if (x * (block + space) + space > w - rawX - margin) {
         selection = null;
         cell.parentElement.hidden = true;
         draw();
         return;
     }
-    var y = Math.floor((rawY-margin)/bc/block);
-    var z = Math.floor(((rawY-margin)-y*bc*block)/block);
-    if(selection&&selection.x==x&&selection.y==y&&selection.z==z) {
+    let y = Math.floor((rawY - margin) / bc / block);
+    let z = Math.floor(((rawY - margin) - y * bc * block) / block);
+    if (selection && selection.x == x && selection.y == y && selection.z == z) {
         selection = null;
         cell.parentElement.hidden = true;
     }
     else {
-        selection = {x: x, y: y, z: z};
+        selection = { x: x, y: y, z: z };
         cell.value = JSON.stringify(sheet[selection.x][selection.y][selection.z]);
         cell.parentElement.hidden = false;
         cell.focus();
     }
     draw();
 }
-cell.onkeypress = function(e) {
-    if(e.keyCode==13) {
+cell.onkeyup = function (e) {
+    if (e.keyCode == 13) {
         try {
             sheet[selection.x][selection.y][selection.z] = JSON.parse(cell.value.replaceAll("'", '"'));
+            selection = null;
+            cell.parentElement.hidden = true;
         }
-        catch(err) {
+        catch (err) {
             alert(err);
         }
         draw();
     }
+}
+
+/*const easternFreqRatio = {
+    'a;;': 128/243*2048/2187*128/243*2048/2187*1,
+    'b;;': 128/243*2048/2187*128/243*2048/2187*2187/2048,
+    'c;;': 128/243*2048/2187*128/243*2048/2187*9/8,
+    'd;;': 128/243*2048/2187*128/243*2048/2187*9/8*2187/2048,
+    'e;;': 128/243*2048/2187*128/243*2048/2187*81/64,
+    'f;;': 128/243*2048/2187*128/243*2048/2187*81/64*2187/2048,
+    'g;;': 128/243*2048/2187*128/243*2048/2187*729/512,
+    'h;;': 128/243*2048/2187*128/243*2048/2187*3/2,
+    'i;;': 128/243*2048/2187*128/243*2048/2187*3/2*2187/2048,
+    'j;;': 128/243*2048/2187*128/243*2048/2187*27/16,
+    'k;;': 128/243*2048/2187*128/243*2048/2187*27/16*2187/2048,
+    'l;;': 128/243*2048/2187*128/243*2048/2187*243/128,
+    'a;': 128/243*2048/2187*1,
+    'b;': 128/243*2048/2187*2187/2048,
+    'c;': 128/243*2048/2187*9/8,
+    'd;': 128/243*2048/2187*9/8*2187/2048,
+    'e;': 128/243*2048/2187*81/64,
+    'f;': 128/243*2048/2187*81/64*2187/2048,
+    'g;': 128/243*2048/2187*729/512,
+    'h;': 128/243*2048/2187*3/2,
+    'i;': 128/243*2048/2187*3/2*2187/2048,
+    'j;': 128/243*2048/2187*27/16,
+    'k;': 128/243*2048/2187*27/16*2187/2048,
+    'l;': 128/243*2048/2187*243/128,
+    'a': 1,
+    'b': 2187/2048,
+    'c': 9/8,
+    'd': 9/8*2187/2048,
+    'e': 81/64,
+    'f': 81/64*2187/2048,
+    'g': 729/512,
+    'h': 3/2,
+    'i': 3/2*2187/2048,
+    'j': 27/16,
+    'k': 27/16*2187/2048,
+    'l': 243/128,
+    'a:': 243/128*2187/2048*1,
+    'b:': 243/128*2187/2048*2187/2048,
+    'c:': 243/128*2187/2048*9/8,
+    'd:': 243/128*2187/2048*9/8*2187/2048,
+    'e:': 243/128*2187/2048*81/64,
+    'f:': 243/128*2187/2048*81/64*2187/2048,
+    'g:': 243/128*2187/2048*729/512,
+    'h:': 243/128*2187/2048*3/2,
+    'i:': 243/128*2187/2048*3/2*2187/2048,
+    'j:': 243/128*2187/2048*27/16,
+    'k:': 243/128*2187/2048*27/16*2187/2048,
+    'l:': 243/128*2187/2048*243/128,
+    'a::': 243/128*2187/2048*243/128*2187/2048*1,
+    'b::': 243/128*2187/2048*243/128*2187/2048*2187/2048,
+    'c::': 243/128*2187/2048*243/128*2187/2048*9/8,
+    'd::': 243/128*2187/2048*243/128*2187/2048*9/8*2187/2048,
+    'e::': 243/128*2187/2048*243/128*2187/2048*81/64,
+    'f::': 243/128*2187/2048*243/128*2187/2048*81/64*2187/2048,
+    'g::': 243/128*2187/2048*243/128*2187/2048*729/512,
+    'h::': 243/128*2187/2048*243/128*2187/2048*3/2,
+    'i::': 243/128*2187/2048*243/128*2187/2048*3/2*2187/2048,
+    'j::': 243/128*2187/2048*243/128*2187/2048*27/16,
+    'k::': 243/128*2187/2048*243/128*2187/2048*27/16*2187/2048,
+    'l::': 243/128*2187/2048*243/128*2187/2048*243/128,
+};*/
+
+const easternFreqRatio = {
+    "a;;": 0.2433154746922973,
+    "b;;": 0.25982956208596397,
+    "c;;": 0.2737299090288345,
+    "d;;": 0.29230825734670945,
+    "e;;": 0.3079461476574388,
+    "f;;": 0.32884678951504814,
+    "g;;": 0.34643941611461865,
+    "h;;": 0.36497321203844596,
+    "i;;": 0.38974434312894596,
+    "j;;": 0.4105948635432517,
+    "k;;": 0.4384623860200642,
+    "l;;": 0.46191922148615816,
+    "a;": 0.4932701842725722,
+    "b;": 0.5267489711934157,
+    "c;": 0.5549289573066437,
+    "d;": 0.5925925925925927,
+    "e;": 0.6242950769699742,
+    "f;": 0.6666666666666669,
+    "g;": 0.7023319615912209,
+    "h;": 0.7399052764088583,
+    "i;": 0.7901234567901235,
+    "j;": 0.8323934359599656,
+    "k;": 0.8888888888888891,
+    "l;": 0.9364426154549612,
+    "a": 1,
+    "b": 1.06787109375,
+    "c": 1.125,
+    "d": 1.20135498046875,
+    "e": 1.265625,
+    "f": 1.3515243530273438,
+    "g": 1.423828125,
+    "h": 1.5,
+    "i": 1.601806640625,
+    "j": 1.6875,
+    "k": 1.802032470703125,
+    "l": 1.8984375,
+    "a:": 2.0272865295410156,
+    "b:": 2.164880683645606,
+    "c:": 2.2806973457336426,
+    "d:": 2.435490769101307,
+    "e:": 2.565784513950348,
+    "f:": 2.73992711523897,
+    "g:": 2.8865075781941414,
+    "h:": 3.0409297943115234,
+    "i:": 3.247321025468409,
+    "j:": 3.421046018600464,
+    "k:": 3.65323615365196,
+    "l:": 3.848676770925522,
+    "a::": 4.109890672858455,
+    "b::": 4.388833448018282,
+    "c::": 4.623627006965762,
+    "d::": 4.937437629020567,
+    "e::": 5.201580382836482,
+    "f::": 5.554617332648138,
+    "g::": 5.851777930691043,
+    "h::": 6.164836009287683,
+    "i::": 6.583250172027423,
+    "j::": 6.935440510448643,
+    "k::": 7.4061564435308505,
+    "l::": 7.802370574254724,
+};
+
+/*const westernFreqRatio = {
+    "a;;": Math.pow(2, -24/12),
+    "b;;": Math.pow(2, -23/12),
+    "c;;": Math.pow(2, -22/12),
+    "d;;": Math.pow(2, -21/12),
+    "e;;": Math.pow(2, -20/12),
+    "f;;": Math.pow(2, -19/12),
+    "g;;": Math.pow(2, -18/12),
+    "h;;": Math.pow(2, -17/12),
+    "i;;": Math.pow(2, -16/12),
+    "j;;": Math.pow(2, -15/12),
+    "k;;": Math.pow(2, -14/12),
+    "l;;": Math.pow(2, -13/12),
+    "a;": Math.pow(2, -12/12),
+    "b;": Math.pow(2, -11/12),
+    "c;": Math.pow(2, -10/12),
+    "d;": Math.pow(2, -9/12),
+    "e;": Math.pow(2, -8/12),
+    "f;": Math.pow(2, -7/12),
+    "g;": Math.pow(2, -6/12),
+    "h;": Math.pow(2, -5/12),
+    "i;": Math.pow(2, -4/12),
+    "j;": Math.pow(2, -3/12),
+    "k;": Math.pow(2, -2/12),
+    "l;": Math.pow(2, -1/12),
+    "a": Math.pow(2, 0/12),
+    "b": Math.pow(2, 1/12),
+    "c": Math.pow(2, 2/12),
+    "d": Math.pow(2, 3/12),
+    "e": Math.pow(2, 4/12),
+    "f": Math.pow(2, 5/12),
+    "g": Math.pow(2, 6/12),
+    "h": Math.pow(2, 7/12),
+    "i": Math.pow(2, 8/12),
+    "j": Math.pow(2, 9/12),
+    "k": Math.pow(2, 10/12),
+    "l": Math.pow(2, 11/12),
+    "a:": Math.pow(2, 12/12),
+    "b:": Math.pow(2, 13/12),
+    "c:": Math.pow(2, 14/12),
+    "d:": Math.pow(2, 15/12),
+    "e:": Math.pow(2, 16/12),
+    "f:": Math.pow(2, 17/12),
+    "g:": Math.pow(2, 18/12),
+    "h:": Math.pow(2, 19/12),
+    "i:": Math.pow(2, 20/12),
+    "j:": Math.pow(2, 21/12),
+    "k:": Math.pow(2, 22/12),
+    "l:": Math.pow(2, 23/12),
+    "a::": Math.pow(2, 24/12),
+    "b::": Math.pow(2, 25/12),
+    "c::": Math.pow(2, 26/12),
+    "d::": Math.pow(2, 27/12),
+    "e::": Math.pow(2, 28/12),
+    "f::": Math.pow(2, 29/12),
+    "g::": Math.pow(2, 30/12),
+    "h::": Math.pow(2, 31/12),
+    "i::": Math.pow(2, 32/12),
+    "j::": Math.pow(2, 33/12),
+    "k::": Math.pow(2, 34/12),
+    "l::": Math.pow(2, 35/12),
+};*/
+const westernFreqRatio = {
+    "a;;": 0.25,
+    "b;;": 0.2648657735898238,
+    "c;;": 0.28061551207734325,
+    "d;;": 0.29730177875068026,
+    "e;;": 0.3149802624737183,
+    "f;;": 0.3337099635425086,
+    "g;;": 0.35355339059327373,
+    "h;;": 0.3745767692191704,
+    "i;;": 0.3968502629920499,
+    "j;;": 0.4204482076268573,
+    "k;;": 0.44544935907016964,
+    "l;;": 0.47193715634084676,
+    "a;": 0.5,
+    "b;": 0.5297315471796477,
+    "c;": 0.5612310241546865,
+    "d;": 0.5946035575013605,
+    "e;": 0.6299605249474366,
+    "f;": 0.6674199270850172,
+    "g;": 0.7071067811865475,
+    "h;": 0.7491535384383408,
+    "i;": 0.7937005259840998,
+    "j;": 0.8408964152537146,
+    "k;": 0.8908987181403393,
+    "l;": 0.9438743126816935,
+    "a": 1,
+    "b": 1.0594630943592953,
+    "c": 1.122462048309373,
+    "d": 1.189207115002721,
+    "e": 1.2599210498948732,
+    "f": 1.3348398541700344,
+    "g": 1.4142135623730951,
+    "h": 1.4983070768766815,
+    "i": 1.5874010519681994,
+    "j": 1.6817928305074292,
+    "k": 1.7817974362806788,
+    "l": 1.887748625363387,
+    "a:": 2,
+    "b:": 2.1189261887185906,
+    "c:": 2.244924096618746,
+    "d:": 2.378414230005442,
+    "e:": 2.5198420997897464,
+    "f:": 2.6696797083400687,
+    "g:": 2.82842712474619,
+    "h:": 2.996614153753363,
+    "i:": 3.174802103936399,
+    "j:": 3.3635856610148585,
+    "k:": 3.563594872561357,
+    "l:": 3.775497250726774,
+    "a::": 4,
+    "b::": 4.237852377437181,
+    "c::": 4.489848193237491,
+    "d::": 4.756828460010884,
+    "e::": 5.039684199579494,
+    "f::": 5.339359416680137,
+    "g::": 5.65685424949238,
+    "h::": 5.993228307506726,
+    "i::": 6.3496042078727974,
+    "j::": 6.727171322029717,
+    "k::": 7.127189745122715,
+    "l::": 7.550994501453547,
+};
+
+function play() {
+    const aFreq = document.getElementById('tone-type').value;
+    const freqRatio = document.getElementById('tune-type').value === '0' ? easternFreqRatio : westernFreqRatio;
+    cell.disabled = true;
+    for (let element of document.getElementsByTagName("input")) {
+        element.disabled = true;
+    }
+    for (let element of document.getElementsByTagName("textarea")) {
+        element.disabled = true;
+    }
+    for (let element of document.getElementsByTagName("select")) {
+        element.disabled = true;
+    }
+    const audioCtx = new AudioContext();
+    let idx = 0;
+    let oscillator = undefined;
+    for (let i = 0; i < sheet.length; i++) {
+        for (let j = 0; j < sheet[i].length; j++) {
+            for (let k = 0; k < sheet[i][j].length; k++) {
+                for (let x = 0; x < sheet[i][j][k].length; x++) {
+                    for (let y = 0; y < sheet[i][j][k][x].length; y++) {
+                        if (freqRatio[sheet[i][j][k][x][y]]) {
+                            if (oscillator) {
+                                oscillator.stop((idx + x / sheet[i][j][k].length + y / sheet[i][j][k].length / sheet[i][j][k][x].length) * 0.5);
+                            }
+                            oscillator = audioCtx.createOscillator();
+                            oscillator.connect(audioCtx.destination);
+                            oscillator.frequency.value = aFreq * freqRatio[sheet[i][j][k][x][y]];
+                            oscillator.start((idx + x / sheet[i][j][k].length + y / sheet[i][j][k].length / sheet[i][j][k][x].length) * 0.5);
+                        }
+                        else if (sheet[i][j][k][x][y] === ".") {
+                            if (oscillator) {
+                                oscillator.stop((idx + x / sheet[i][j][k].length + y / sheet[i][j][k].length / sheet[i][j][k][x].length) * 0.5);
+                                oscillator = undefined;
+                            }
+                        }
+                    }
+                }
+                idx++;
+            }
+        }
+    }
+    if (oscillator) {
+        oscillator.stop(idx * 0.5);
+    }
+    setTimeout(() => {
+        cell.disabled = false;
+        for (let element of document.getElementsByTagName("input")) {
+            element.disabled = false;
+        }
+        for (let element of document.getElementsByTagName("textarea")) {
+            element.disabled = false;
+        }
+        for (let element of document.getElementsByTagName("select")) {
+            element.disabled = false;
+        }
+    }, idx * 500);
 }
