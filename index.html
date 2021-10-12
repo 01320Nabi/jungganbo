@@ -1,42 +1,53 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>정간보</title>
-        <link rel="stylesheet" href="style.css">
-    </head>
-    <body>
-        <div class="input">
-            <label>각 개수<input type="number" id="line" min="1" step="1" value="8"></label>
-            <label>각 안의 강 개수<input type="number" id="meas" min="2" max="6" step="1" value="2"></label>
-            <label>강 안의 정 개수<input type="number" id="beat" min="1"step="1" value="3"></label>
-            <label>정 크기<input type="number" id="block" min="20" step="10" value="100"></label>
-            <label>빈칸 크기<input type="number" id="space" min="6" step="2" value="30"></label>
-            <input type="button" onclick="setSetting()" value="설정 변경">
-            <br>
-            <label>내용 입력<input type="file" accept="text/json" onchange="upload(this)" id="sheet-input"></label>
-            <input type="button" onclick="download()" value="내용 출력">
-            <br>
-            <select id="tone-type">
-                <option value="259">당악(黃=259Hz)</option>
-                <option value="311">향악(黃=311Hz)</option>
-            </select>
-            <select id="tune-type">
-                <option value="0">삼분손익법</option>
-                <option value="1">평균율법</option>
-            </select>
-            <input type="button" onclick="play()" value="연주">
-        </div>
-        <div>
-            <canvas id="sheet"></canvas>
-            <p class="desc">
-                'a':黃<br>'b':大<br>'c':太<br>'d':夾<br>'e':姑<br>'f':仲<br>'g':㽔<br>'h':林<br>
-                'i':夷<br>'j':南<br>'k':無<br>'l':應<br>':':氵<br>';':亻<br>'.':ㅿ<br>' ':一
-            </p>
-            <p class="popup-p" hidden>
-                <input type="text" id="cell" class="popup-input">
-            </p>
-        </div>
-    </body>
-    <script src="jungganbo.js"></script>
+<head>
+  <meta charset="utf-8">
+  <title>정간보</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="input">
+    <input type="number" id="page" min="1" step="1" value="1" placeholder="장 개수">
+    <input type="number" id="line" min="1" step="1" value="8" placeholder="장 안의 각 개수">
+    <input type="number" id="meas" min="1" step="1" value="2" placeholder="각 안의 강 개수">
+    <input type="number" id="beat" min="1" step="1" value="3" placeholder="강 안의 정 개수">
+    <input type="number" id="block" min="20" step="10" value="100" placeholder="정 크기">
+    <input type="number" id="space" min="6" step="2" value="30" placeholder="빈칸 크기">
+    <input type="text" id="font" value="serif" placeholder="글꼴">
+    <input type="button" onclick="setSetting()" value="설정 변경">
+    <br>
+    <span>
+      <input type="button" onclick="document.getElementById('sheet-input').click()" value="내용 입력">
+      <input type="file" style="display: none;" accept="text/json" onchange="upload(this)" id="sheet-input">
+    </span>
+    <input type="button" onclick="download()" value="내용 출력">
+    <br>
+    <select id="tone-type">
+      <option value="259">당악(黃=259Hz)</option>
+      <option value="311">향악(黃=311Hz)</option>
+      <option value="440">黃=440Hz</option>
+    </select>
+    <select id="tune-type">
+      <option value="0">삼분손익법</option>
+      <option value="1">평균율법</option>
+    </select>
+    <input type="button" onclick="play()" value="연주">
+  </div>
+  <div class="content">
+    <canvas id="sheet"></canvas>
+    <p class="popup-p" hidden>
+      <input type="text" id="cell" class="popup-input">
+    </p>
+    <p class="desc">
+      'a':黃<br>'b':大<br>'c':太<br>'d':夾<br>'e':姑<br>'f':仲<br>'g':㽔<br>'h':林<br>
+      'i':夷<br>'j':南<br>'k':無<br>'l':應<br>':':氵<br>';':亻<br>'.':ㅿ<br>' ':一
+    </p>
+  </div>
+  <div class="input">
+    <input type="button" onclick="if(page>0){page--;draw();}" value="앞 페이지">
+    <span id="page-disp">1</span>
+    <input type="button" onclick="if(page<pc-1){page++;draw();}" value="뒷 페이지">
+  </div>
+</body>
+<script src="jungganbo.js"></script>
 </html>
