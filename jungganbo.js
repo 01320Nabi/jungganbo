@@ -516,6 +516,7 @@ const freqRatios = {
 function play() {
   const aFreq = document.getElementById('tone-type').value;
   const freqRatio = freqRatios[document.getElementById('tune-type').value];
+  const spb = 60/document.getElementById('bpm').value;
   cell.disabled = true;
   for (const element of document.getElementsByTagName("input")) {
     element.disabled = true;
@@ -533,24 +534,27 @@ function play() {
   oscillator.connect(gain);
   gain.connect(audioCtx.destination);
   gain.gain.value = 0;
+  let lastPos = 0;
   for (let p = 0; p < pc; p++) {
     for (let i = 0; i < lc; i++) {
       for (let j = 0; j < mc; j++) {
         for (let k = 0; k < bc; k++) {
           for (let x = 0; x < sheet[p][i][j][k].length; x++) {
             for (let y = 0; y < sheet[p][i][j][k][x].length; y++) {
-              const time = (p * lc * mc * bc + i * mc * bc + j * bc + k + x / sheet[p][i][j][k].length + y / sheet[p][i][j][k].length / sheet[p][i][j][k][x].length) * 0.5;
+              const time = (p * lc * mc * bc + i * mc * bc + j * bc + k + x / sheet[p][i][j][k].length + y / sheet[p][i][j][k].length / sheet[p][i][j][k][x].length) * spb;
               if (freqRatio[sheet[p][i][j][k][x][y]]) {
                 if (sheet[p][i][j][k][x][y] === lastFreq) {
-                  gain.gain.setValueAtTime(0, Math.max(time - 0.05, 0));
+                  gain.gain.setValueAtTime(0, Math.max(time - 0.1 * spb, 0));
                 }
                 gain.gain.setValueAtTime(1, time);
                 oscillator.frequency.setValueAtTime(aFreq * freqRatio[sheet[p][i][j][k][x][y]], time);
                 lastFreq = sheet[p][i][j][k][x][y];
+                lastPos = -1;
               }
               else if (sheet[p][i][j][k][x][y] === ".") {
                 gain.gain.setValueAtTime(0, time);
                 lastFreq = '';
+                lastPos = time;
               }
             }
           }
@@ -558,14 +562,19 @@ function play() {
       }
     }
   }
+  if(lastPos < 0) {
+    lastPos = pc * lc * mc * bc * spb;
+  }
   oscillator.start();
-  oscillator.stop(pc * lc * mc * bc * 0.5);
+  oscillator.stop(lastPos);
   const originPage = page;
   for (let i = 0; i < pc; i++) {
+    if(i * lc * mc * bc * spb < lastPos) {
     setTimeout(idx => {
       page = idx;
       draw();
-    }, i * lc * mc * bc * 500, i);
+    }, i * lc * mc * bc * spb * 1000, i);
+  }
   }
   setTimeout(() => {
     page = originPage;
@@ -582,5 +591,5 @@ function play() {
     for (let element of document.getElementsByTagName("select")) {
       element.disabled = false;
     }
-  }, pc * lc * mc * bc * 500);
+  }, lastPos * 1000);
 }
